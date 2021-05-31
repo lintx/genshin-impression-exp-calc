@@ -6,7 +6,7 @@ import "../css/calc1.scss";
 import "@babel/polyfill"
 import diff from "./color";
 
-let version = "0.2";
+let version = "0.3";
 
 Vue.use(BootstrapVue);
 Vue.use(PortalVue);
@@ -98,6 +98,8 @@ let app = new Vue({
             let img = new Image;
             img.onload = ()=>{
                 let c = this.$refs.canvas;
+                c.width = img.width;
+                c.height = img.height;
                 let ct = c.getContext("2d");
                 ct.clearRect(0,0,c.width,c.height);
                 ct.drawImage(img,0,0);
@@ -136,6 +138,14 @@ let app = new Vue({
                         points[x][y] = point;
                     }
                 }
+                if (maxX===-1 || minX===-1){
+                    this.$bvToast.toast('没有识别到好感度进度条', {
+                        title: '错误',
+                        variant: 'danger',//danger,warning,info,primary,secondary,default
+                        solid: true
+                    });
+                    return;
+                }
                 let rys = [];
                 for (let i=0,l=ys.length;i<l;i++){
                     let y=ys[i];
@@ -154,7 +164,7 @@ let app = new Vue({
                 let big = [];
                 for (let x = maxX+1,size=points.length;x<size;x++){
                     let d = diff(points[x-1][y],points[x][y]);
-                    console.log(diff(points[maxX+1][y],points[x][y]),diff(target,points[x][y]),x,y,points[x][y])
+                    // console.log(diff(points[maxX+1][y],points[x][y]),diff(target,points[x][y]),x,y,points[x][y])
                     if (d>2){
                         big.push(x);
                     }
@@ -219,15 +229,36 @@ let app = new Vue({
         this.$refs.canvas.ondragover = (e) => {
             e.preventDefault();    //阻止拖来拖去的浏览器默认行为
         };
+        document.addEventListener('paste', (event)=> {
+            let items = event.clipboardData && event.clipboardData.items;
+            let file = null;
+            if (!items || items.length===0){
+                this.$bvToast.toast('无法识别的内容', {
+                    title: '错误',
+                    variant: 'danger',//danger,warning,info,primary,secondary,default
+                    solid: true
+                });
+                return;
+            }
+            if (items && items.length) {
+                // 检索剪切板items
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        file = items[i].getAsFile();
+                        break;
+                    }
+                }
+            }
+            if (!file){
+                this.$bvToast.toast('只能粘贴图片', {
+                    title: '错误',
+                    variant: 'danger',//danger,warning,info,primary,secondary,default
+                    solid: true
+                });
+                return;
+            }
+            this.loadImg(file);
+            // 此时file就是剪切板中的图片文件
+        });
     }
 });
-
-console.log(diff({
-    r:171,
-    g:167,
-    b:243
-},{
-    r:177,
-    g:166,
-    b:255
-}))

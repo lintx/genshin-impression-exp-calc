@@ -20,7 +20,7 @@ const paths = {
         //开发环境输出根目录
         dev:path.resolve(__dirname, './output/dev'),
         //生产环境输出根目录
-        dis:path.resolve(__dirname, './output/dis'),
+        dis:path.resolve(__dirname, '../lintx.github.io/genshin/calc1'),
         //源码文件根目录
         src:path.resolve(__dirname, './src')
     },

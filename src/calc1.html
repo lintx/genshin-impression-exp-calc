@@ -28,12 +28,13 @@
                     <div class="card-body">
                         <b-card no-body class="mb-4">
                             <b-card-body>
+                                bug反馈（请提供识别错误的原始图片）：<a href="https://bbs.nga.cn/read.php?tid=26993909">https://bbs.nga.cn/read.php?tid=26993909</a><br />
                                 灵感来源：<a href="https://bbs.nga.cn/read.php?tid=26971420">https://bbs.nga.cn/read.php?tid=26971420</a><br />
                                 使用方法：<br />
                                 1. 截图并保存为png或24位bmp格式，截取图片示例：<br />
                                 <img src="screenshot/1.png"><br />
                                 2. 选择当前好感度等级<br />
-                                3. 在选择文件处选择图片或拖拽图片到拖拽处即可查看结果
+                                3. 在选择文件处选择图片或拖拽图片到拖拽处或直接粘贴图片即可查看结果
                             </b-card-body>
                         </b-card>
                         <div class="form-group">
@@ -55,8 +56,8 @@
                             <input ref="referenceUpload" class="form-control-file" id="img" type="file" @change="selectFile" accept="image/bmp,image/png">
                         </div>
                         <div class="form-group">
-                            <p>或者将截图拖拽到这里：</p>
-                            <canvas ref="canvas" style="border: 2px dashed red"></canvas>
+                            <p>或者将截图拖拽或粘贴到这里：</p>
+                            <canvas class="canvas" ref="canvas"></canvas>
                         </div>
                         <div>
                             <p>当前好感进度：{{exp.process}}</p>
