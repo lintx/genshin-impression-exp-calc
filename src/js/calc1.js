@@ -6,7 +6,7 @@ import "../css/calc1.scss";
 import "@babel/polyfill"
 import {diff,middleColor} from "./color";
 
-let version = "0.5";
+let version = "0.6";
 
 Vue.use(BootstrapVue);
 Vue.use(PortalVue);
@@ -67,7 +67,8 @@ let app = new Vue({
                 });
                 return;
             }
-            this.loadImg(file);
+            this.file = file;
+            this.loadImg();
             e.target.value = null;
         },
         calc(){
