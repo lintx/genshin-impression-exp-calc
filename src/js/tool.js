@@ -4,7 +4,7 @@ import PortalVue from 'portal-vue'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import "../css/calc1.scss";
 import "@babel/polyfill"
-import diff from "./color";
+import {diff} from "./color";
 
 let version = "0.1";
 

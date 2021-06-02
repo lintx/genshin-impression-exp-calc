@@ -1,3 +1,12 @@
+function middleColor(colors){
+    let diffs = [];
+    let target = {r:255,g:255,b:255}
+    for (let i=0,size=colors.length;i<size;i++){
+        diffs.push({color:colors[i],diff:diff(target,colors[i])});
+    }
+    diffs.sort((a,b)=>a.diff-b.diff);
+    return diffs[Math.floor((diffs.length-1)/2)].color;
+}
 
 function diff(c1, c2)
 {
@@ -171,4 +180,4 @@ function normalize_rgb(c)
     }
     return new_c;
 }
-export default diff
+export {diff,middleColor}

@@ -4,9 +4,9 @@ import PortalVue from 'portal-vue'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import "../css/calc1.scss";
 import "@babel/polyfill"
-import diff from "./color";
+import {diff,middleColor} from "./color";
 
-let version = "0.3";
+let version = "0.4";
 
 Vue.use(BootstrapVue);
 Vue.use(PortalVue);
@@ -25,7 +25,9 @@ let app = new Vue({
             point:{
                 x1:0,
                 x2:0,
-                x3:0
+                x3:0,
+                y1:0,
+                y2:0
             },
             expData:[
                 1000,
@@ -80,7 +82,7 @@ let app = new Vue({
             }else {
                 let full = this.point.x3 - this.point.x1;
                 let has = this.point.x2 - this.point.x1 + 1;
-                let process = has / full;
+                let process = Math.max(0,Math.min(1,has / full));
                 this.exp.process = Math.round(process * 10000) / 100 + "%";
                 let curr = Math.round(this.expData[this.level-1] * process);
                 this.exp.curr = curr;
@@ -89,7 +91,12 @@ let app = new Vue({
                 for (let i=this.level;i<9;i++){
                     this.exp.full += this.expData[i];
                 }
-
+                let c = this.$refs.canvas;
+                let ct = c.getContext("2d");
+                ct.strokeStyle = "red"
+                ct.strokeRect(this.point.x1-1,this.point.y1-1,this.point.x2-this.point.x1+1,this.point.y2-this.point.y1+2);
+                ct.strokeStyle = "#000000"
+                ct.strokeRect(this.point.x2+1,this.point.y1-1,this.point.x3-this.point.x2+1,this.point.y2-this.point.y1+2);
             }
         },
         loadImg(file){
@@ -149,28 +156,101 @@ let app = new Vue({
                 let rys = [];
                 for (let i=0,l=ys.length;i<l;i++){
                     let y=ys[i];
-                    let ok = true;
+                    let ok = 0;
                     for (let x=minX;x<=maxX;x++){
-                        if (points[x][y].diff>5){
-                            ok = false;
-                            break;
+                        if (points[x][y].diff<=5){
+                            ok++;
                         }
                     }
-                    if (ok){
+                    // console.log(ok/(maxX-minX+1))
+                    if (ok/(maxX-minX+1) >= 0.95){
                         rys.push(y);
                     }
                 }
-                let y = rys[Math.min(rys.length-1,Math.max(0,Math.round(rys.length/2)))];
+                if (rys.length===0){
+                    this.$bvToast.toast('没有识别到好感度进度条', {
+                        title: '错误',
+                        variant: 'danger',//danger,warning,info,primary,secondary,default
+                        solid: true
+                    });
+                    return;
+                }
+                let middleIndex = Math.min(rys.length-1,Math.max(0,Math.round(rys.length/2)-1));
+                let y = rys[middleIndex];
+                this.point.y1 = rys[0];
+                this.point.y2 = rys[rys.length-1];
+
+                let bgs = [];
+                if (minX>=5){
+                    bgs.push(points[minX-5][y]);
+                }
+                if (y-middleIndex-5>=0){
+                    bgs.push(points[minX][y-middleIndex-5]);
+                    bgs.push(points[maxX][y-middleIndex-5]);
+                }
+                if (y+middleIndex+5<data.height){
+                    bgs.push(points[minX][y+middleIndex+5]);
+                    bgs.push(points[maxX][y+middleIndex+5]);
+                }
+                if (bgs.length===0){
+                    this.$bvToast.toast('没有识别到好感度进度条', {
+                        title: '错误',
+                        variant: 'danger',//danger,warning,info,primary,secondary,default
+                        solid: true
+                    });
+                    return;
+                }
+                let mBg = middleColor(bgs);
+
                 let big = [];
+                let l5c = 0;
+                this.point.x3 = 0;
                 for (let x = maxX+1,size=points.length;x<size;x++){
-                    let d = diff(points[x-1][y],points[x][y]);
-                    // console.log(diff(points[maxX+1][y],points[x][y]),diff(target,points[x][y]),x,y,points[x][y])
-                    if (d>2){
-                        big.push(x);
+                    // let d = diff(points[x-1][y],points[x][y]);
+                    // // console.log(diff(points[maxX+1][y],points[x][y]),diff(target,points[x][y]),x,y,points[x][y])
+                    // console.log(diff(mBg,points[x][y]),mBg,x,y,points[x][y])
+                    // if (d>2){
+                    //     big.push(x);
+                    // }
+                    let d = diff(mBg,points[x][y]);
+                    // console.log(d,mBg,x,y,points[x][y])
+                    if (d<9){
+                        l5c++
+                        if (l5c>=3){
+                            this.point.x3 = x-5;
+                            break;
+                        }
+                    }else {
+                        l5c=0;
                     }
                 }
-                if (big.length<2){
-                    //识别失败
+                // if (big.length<2){
+                //     //识别失败
+                //     this.$bvToast.toast('识别失败，请确认截图无误，如确认截图无误请向作者反馈', {
+                //         title: '错误',
+                //         variant: 'danger',//danger,warning,info,primary,secondary,default
+                //         solid: true
+                //     });
+                //     this.point.x1 = 0;
+                //     this.point.x2 = 0;
+                //     this.point.x3 = 0;
+                // } else if (big.length===2 || big[0]+1===big[1] && big[1]+1!==big[2]){
+                //     //连续2个大差距的（经验已满）
+                //     this.$bvToast.toast('好感经验已满', {
+                //         title: '提示',
+                //         variant: 'primary',//danger,warning,info,primary,secondary,default
+                //         solid: true
+                //     });
+                //     this.point.x1 = 0;
+                //     this.point.x2 = 1;
+                //     this.point.x3 = 1;
+                // }else {
+                //     //连续3个大差距的/第一个大差距，然后有一段小差距，接着连续2个大差距
+                //     this.point.x1 = minX;
+                //     this.point.x2 = maxX;
+                //     this.point.x3 = big[1];
+                // }
+                if (this.point.x3===0){
                     this.$bvToast.toast('识别失败，请确认截图无误，如确认截图无误请向作者反馈', {
                         title: '错误',
                         variant: 'danger',//danger,warning,info,primary,secondary,default
@@ -178,22 +258,9 @@ let app = new Vue({
                     });
                     this.point.x1 = 0;
                     this.point.x2 = 0;
-                    this.point.x3 = 0;
-                } else if (big.length===2 || big[0]+1===big[1] && big[1]+1!==big[2]){
-                    //连续2个大差距的（经验已满）
-                    this.$bvToast.toast('好感经验已满', {
-                        title: '提示',
-                        variant: 'primary',//danger,warning,info,primary,secondary,default
-                        solid: true
-                    });
-                    this.point.x1 = 0;
-                    this.point.x2 = 1;
-                    this.point.x3 = 1;
                 }else {
-                    //连续3个大差距的/第一个大差距，然后有一段小差距，接着连续2个大差距
                     this.point.x1 = minX;
                     this.point.x2 = maxX;
-                    this.point.x3 = big[1];
                 }
                 this.calc();
             };
