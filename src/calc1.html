@@ -52,6 +52,14 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label for="tolerance">请选择容错率</label>
+                            <select class="form-control" id="tolerance" v-model.number="tolerance" @change="loadImg">
+                                <option value="1">低</option>
+                                <option value="2">中</option>
+                                <option value="3">高</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="img">选择好感度截图</label>
                             <input ref="referenceUpload" class="form-control-file" id="img" type="file" @change="selectFile" accept="image/bmp,image/png">
                         </div>

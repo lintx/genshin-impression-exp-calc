@@ -6,7 +6,7 @@ import "../css/calc1.scss";
 import "@babel/polyfill"
 import {diff,middleColor} from "./color";
 
-let version = "0.4";
+let version = "0.5";
 
 Vue.use(BootstrapVue);
 Vue.use(PortalVue);
@@ -40,7 +40,9 @@ let app = new Vue({
                 4975,
                 5650
             ],
-            level:1
+            level:1,
+            tolerance:2,
+            file:null
         };
         return data;
     },
@@ -99,7 +101,15 @@ let app = new Vue({
                 ct.strokeRect(this.point.x2+1,this.point.y1-1,this.point.x3-this.point.x2+1,this.point.y2-this.point.y1+2);
             }
         },
-        loadImg(file){
+        loadImg(){
+            if (this.file===null) {
+                this.$bvToast.toast('请先上传图片', {
+                    title: '错误',
+                    variant: 'danger',//danger,warning,info,primary,secondary,default
+                    solid: true
+                });
+                return;
+            }
             let canvas = document.createElement("canvas");
             let ctx = canvas.getContext("2d");
             let img = new Image;
@@ -214,9 +224,25 @@ let app = new Vue({
                     // }
                     let d = diff(mBg,points[x][y]);
                     // console.log(d,mBg,x,y,points[x][y])
-                    if (d<9){
+                    let tolerance = 8;
+                    let tc = 4;
+                    switch (this.tolerance){
+                        case 1:
+                            tolerance = 5;
+                            tc = 5;
+                            break;
+                        case 2:
+                            tolerance = 8;
+                            tc = 4;
+                            break;
+                        case 3:
+                            tolerance = 10;
+                            tc = 3;
+                            break;
+                    }
+                    if (d<tolerance){
                         l5c++
-                        if (l5c>=3){
+                        if (l5c>=tc){
                             this.point.x3 = x-5;
                             break;
                         }
@@ -264,7 +290,7 @@ let app = new Vue({
                 }
                 this.calc();
             };
-            img.src = URL.createObjectURL(file);
+            img.src = URL.createObjectURL(this.file);
         }
     },
     mounted() {
@@ -287,7 +313,8 @@ let app = new Vue({
                 });
                 return;
             }
-            this.loadImg(file);
+            this.file = file;
+            this.loadImg();
         };
         this.$refs.canvas.ondragenter = (e) => {
             e.preventDefault();  //阻止拖入时的浏览器默认行为
@@ -324,7 +351,8 @@ let app = new Vue({
                 });
                 return;
             }
-            this.loadImg(file);
+            this.file = file;
+            this.loadImg();
             // 此时file就是剪切板中的图片文件
         });
     }
